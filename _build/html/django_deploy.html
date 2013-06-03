@@ -1,0 +1,237 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Django deployment on nginx + gunicorn &mdash; MyTest 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="MyTest 1.0 documentation" href="index.html" />
+    <link rel="prev" title="Welcome to MyTest’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to MyTest’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">MyTest 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="django-deployment-on-nginx-gunicorn">
+<h1>Django deployment on nginx + gunicorn<a class="headerlink" href="#django-deployment-on-nginx-gunicorn" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="django">
+<h2>Django的設定<a class="headerlink" href="#django" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">正式deploy時, 要將static content(css, js, images, 與user-uploaded files)與程式分開</p>
+<ul>
+<li><p class="first">STATIC_ROOT setting:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">STATIC_ROOT</span> <span class="o">=</span> <span class="s">&#39;/var/www/html/djangophp/static/&#39;</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">MEDIA_ROOT setting:</p>
+<div class="highlight-python"><pre>MEDIA_ROOT = '/var/www/html/djangophp/media/’</pre>
+</div>
+</li>
+<li><p class="first">STATIC_ROOT設定值:</p>
+<ul class="simple">
+<li>在正式deployment環境下才會使用到的設定</li>
+<li>可以利用&#8217;&#8216;$python manage.py collectstatic&#8217;&#8217; 來將STATICFILES_DIRS設定的static file directories的內容copy到STATIC_ROOT下</li>
+</ul>
+</li>
+<li><p class="first">MEDIA_ROOT設定:</p>
+<ul>
+<li><p class="first">需在development環境與正式deployment環境下使用不同的設定值,例如:</p>
+<ul>
+<li><p class="first">development環境:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">MEDIA_ROOT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_PATH</span><span class="p">,</span> <span class="s">&#39;media&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">deployment setting:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">MEDIA_ROOT</span> <span class="o">=</span> <span class="s">&#39;/var/www/html/djangophp/media/&#39;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+<li><p class="first">因此如果需要(例如測試主機與正式主機的user-upload files需要同步)則必須手動將檔案複製到MEDIA_ROOT路徑下</p>
+<p>notes: 檔案上傳將會寫入到MEDIA_ROOT路徑中, 因此這裡必須讓執行gunicorn的process所有權者(migulu)有write的權限. 可是這樣會需要/var/www/html/djangophp/media/ 該路徑以上的所有parent directories都要開放給migulu user write的權限. 這樣不是好的方法.</p>
+<p>因此還是將MEDIA_ROOT設定在development環境下的MEDIA_ROOT 亦即 /home/migulu/djangophp/djangophp/media/ 下, 然後建立一個目錄連結(mount 方式) 由 &#8216;/var/www/html/djangophp/media/&#8217; 指向development環境下的MEDIA_ROOT設定, 如此可以讓gunicorn process可以寫入檔案, nginx process可以讀取.</p>
+<div class="highlight-python"><pre>mount --bind /home/migulu/djangophp/djangophp/media/ /var/www/html/djangophp/media</pre>
+</div>
+</li>
+</ul>
+</li>
+<li><p class="first">urls.py中的root urlpattern設定:
+- 為了讓django與php能夠在同一個server下執行, nginx中的location設定須將兩者的url區分開, 因此django的root url改到django/下</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">urlpatterns</span> <span class="o">+=</span> <span class="n">patterns</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+    <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^django/$&#39;</span><span class="p">,</span> <span class="s">&#39;orion.views.news_list&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;news_list&#39;</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="gunicorn">
+<h2>gunicorn指令<a class="headerlink" href="#gunicorn" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">使用gunicorn(另一個指令為gunicorn_django,但在django1.4後, 建議使用gunicorn)</p>
+</li>
+<li><p class="first">‘djangophp’為 django project name</p>
+</li>
+<li><p class="first">‘application’ is the wsgi variable name in wsgi.py module</p>
+</li>
+<li><p class="first">the binding ip/port is localhost:8001</p>
+<ul>
+<li><p class="first">since we are now using nginx as the reverse proxy, here should use the localhost, so the django project can only be accessed through nginx, not accessed directly.</p>
+<div class="highlight-python"><pre>$/home/migulu/Dropbox/2.7.3/bin/gunicorn djangophp.wsgi:application -u migulu -g migulu --settings=djangophp.settings_production -b 127.0.0.1:8001</pre>
+</div>
+</li>
+</ul>
+</li>
+<li><p class="first">settings_production.py中僅僅是將MEDIA_ROOT改寫</p>
+</li>
+</ul>
+</div>
+<div class="section" id="nginx">
+<h2>nginx設定<a class="headerlink" href="#nginx" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">設定檔路徑: /etc/nginx/conf.d/virtual.conf</p>
+<div class="highlight-python"><pre>server {
+   listen       8080;
+   server_name  200.100.100.124;
+   root /var/www/html/host; #for php static files
+   access_log /var/log/nginx/access.log;
+   error_log /var/log/nginx/error.log;
+   location /django/ {
+       proxy_pass_header Server;
+       proxy_set_header Host $http_host;
+       proxy_redirect off;
+       proxy_set_header X-Real-IP $remote_addr;
+       proxy_set_header X-Scheme $scheme;
+       proxy_connect_timeout 10;
+       proxy_read_timeout 10;
+       proxy_pass http://localhost:8001/django/; #注意'django’的url路徑
+   }
+   location /djangophp/media/ { # matching url pattern for  media files
+       root /var/www/html;
+   }
+   location /djangophp/static/ { # matching url pattern for  static files
+       root /var/www/html;
+   }
+   location / {
+       index   index.php;
+   }
+   location ~ \.php$ {
+       fastcgi_pass    127.0.0.1:9000;
+       fastcgi_index   index.php;
+       fastcgi_param   SCRIPT_FILENAME $document_root$fastcgi_script_name;
+       include         fastcgi_params;
+   }
+}
+
+    reload nginx server:</pre>
+</div>
+</li>
+</ul>
+<p>$ /etc/init.d/nginx &#8211;reload</p>
+<blockquote>
+<div><p>注意STATIC_ROOT及MEDIA_ROOT路徑下的directory/file permissions.</p>
+<blockquote>
+<div><p>必須要讓執行nginx的process的所有權者(nginx), 能夠有這些路徑的read權限</p>
+<p>若是要能夠寫入檔案(user uploading files), 則需讓執行gunicorn的process所有權者(migulu)有MEDIA_ROOT的write 權限(或者利用前面所提及的mount方式之目錄連結).</p>
+</div></blockquote>
+</div></blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Django deployment on nginx + gunicorn</a><ul>
+<li><a class="reference internal" href="#django">Django的設定</a></li>
+<li><a class="reference internal" href="#gunicorn">gunicorn指令</a></li>
+<li><a class="reference internal" href="#nginx">nginx設定</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to MyTest&#8217;s documentation!</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/django_deploy.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to MyTest’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">MyTest 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Ryan Nieh.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
