@@ -19,7 +19,7 @@ Django的設定
 
     - 在正式deployment環境下才會使用到的設定
 
-    - 可以利用**$python manage.py collectstatic** 來將STATICFILES_DIRS設定的static file directories的內容copy到STATIC_ROOT下
+    - 可以利用 **$python manage.py collectstatic** 來將STATICFILES_DIRS設定的static file directories的內容copy到STATIC_ROOT下
 
 
   - MEDIA_ROOT設定:
