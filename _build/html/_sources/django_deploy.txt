@@ -1,6 +1,6 @@
-=====================================
-Django deployment on nginx + gunicorn
-=====================================
+=============================================
+利用nginx 及 gunicorn來佈署Django application
+=============================================
     
 Django的設定
 ------------
@@ -19,7 +19,7 @@ Django的設定
 
     - 在正式deployment環境下才會使用到的設定
 
-    - 可以利用''$python manage.py collectstatic'' 來將STATICFILES_DIRS設定的static file directories的內容copy到STATIC_ROOT下
+    - 可以利用 **$python manage.py collectstatic** 來將STATICFILES_DIRS設定的static file directories的內容copy到STATIC_ROOT下
 
 
   - MEDIA_ROOT設定:
@@ -104,16 +104,15 @@ nginx設定
        }
     }
 
-        reload nginx server:
+- reload nginx server::
 
+      $/etc/init.d/nginx --reload
 
-$ /etc/init.d/nginx --reload
+- 注意STATIC_ROOT及MEDIA_ROOT路徑下的directory/file permissions.
 
-        注意STATIC_ROOT及MEDIA_ROOT路徑下的directory/file permissions.
+  - 必須要讓執行nginx的process的所有權者(nginx), 能夠有這些路徑的read權限
 
-            必須要讓執行nginx的process的所有權者(nginx), 能夠有這些路徑的read權限
-
-            若是要能夠寫入檔案(user uploading files), 則需讓執行gunicorn的process所有權者(migulu)有MEDIA_ROOT的write 權限(或者利用前面所提及的mount方式之目錄連結).
+  - 若是要能夠寫入檔案(user uploading files), 則需讓執行gunicorn的process所有權者(migulu)有MEDIA_ROOT的write 權限(或者利用前面所提及的mount方式之目錄連結).
 
 
 

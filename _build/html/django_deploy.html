@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Django deployment on nginx + gunicorn &mdash; MyTest 1.0 documentation</title>
+    <title>利用nginx 及 gunicorn來佈署Django application &mdash; MyTest 1.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="MyTest 1.0 documentation" href="index.html" />
-    <link rel="prev" title="Welcome to MyTest’s documentation!" href="index.html" /> 
+    <link rel="prev" title="歡迎來到我的Django framework筆記" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -34,7 +34,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="index.html" title="Welcome to MyTest’s documentation!"
+          <a href="index.html" title="歡迎來到我的Django framework筆記"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">MyTest 1.0 documentation</a> &raquo;</li> 
       </ul>
@@ -45,8 +45,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="django-deployment-on-nginx-gunicorn">
-<h1>Django deployment on nginx + gunicorn<a class="headerlink" href="#django-deployment-on-nginx-gunicorn" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="nginx-gunicorndjango-application">
+<h1>利用nginx 及 gunicorn來佈署Django application<a class="headerlink" href="#nginx-gunicorndjango-application" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="django">
 <h2>Django的設定<a class="headerlink" href="#django" title="Permalink to this headline">¶</a></h2>
 <ul>
@@ -64,7 +64,7 @@
 <li><p class="first">STATIC_ROOT設定值:</p>
 <ul class="simple">
 <li>在正式deployment環境下才會使用到的設定</li>
-<li>可以利用&#8217;&#8216;$python manage.py collectstatic&#8217;&#8217; 來將STATICFILES_DIRS設定的static file directories的內容copy到STATIC_ROOT下</li>
+<li>可以利用 <strong>$python manage.py collectstatic</strong> 來將STATICFILES_DIRS設定的static file directories的內容copy到STATIC_ROOT下</li>
 </ul>
 </li>
 <li><p class="first">MEDIA_ROOT設定:</p>
@@ -159,20 +159,20 @@
        fastcgi_param   SCRIPT_FILENAME $document_root$fastcgi_script_name;
        include         fastcgi_params;
    }
-}
-
-    reload nginx server:</pre>
+}</pre>
 </div>
 </li>
+<li><p class="first">reload nginx server:</p>
+<div class="highlight-python"><pre>$/etc/init.d/nginx --reload</pre>
+</div>
+</li>
+<li><p class="first">注意STATIC_ROOT及MEDIA_ROOT路徑下的directory/file permissions.</p>
+<ul class="simple">
+<li>必須要讓執行nginx的process的所有權者(nginx), 能夠有這些路徑的read權限</li>
+<li>若是要能夠寫入檔案(user uploading files), 則需讓執行gunicorn的process所有權者(migulu)有MEDIA_ROOT的write 權限(或者利用前面所提及的mount方式之目錄連結).</li>
 </ul>
-<p>$ /etc/init.d/nginx &#8211;reload</p>
-<blockquote>
-<div><p>注意STATIC_ROOT及MEDIA_ROOT路徑下的directory/file permissions.</p>
-<blockquote>
-<div><p>必須要讓執行nginx的process的所有權者(nginx), 能夠有這些路徑的read權限</p>
-<p>若是要能夠寫入檔案(user uploading files), 則需讓執行gunicorn的process所有權者(migulu)有MEDIA_ROOT的write 權限(或者利用前面所提及的mount方式之目錄連結).</p>
-</div></blockquote>
-</div></blockquote>
+</li>
+</ul>
 </div>
 </div>
 
@@ -184,7 +184,7 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Django deployment on nginx + gunicorn</a><ul>
+<li><a class="reference internal" href="#">利用nginx 及 gunicorn來佈署Django application</a><ul>
 <li><a class="reference internal" href="#django">Django的設定</a></li>
 <li><a class="reference internal" href="#gunicorn">gunicorn指令</a></li>
 <li><a class="reference internal" href="#nginx">nginx設定</a></li>
@@ -194,7 +194,7 @@
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="index.html"
-                        title="previous chapter">Welcome to MyTest&#8217;s documentation!</a></p>
+                        title="previous chapter">歡迎來到我的Django framework筆記</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/django_deploy.txt"
@@ -224,7 +224,7 @@
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="index.html" title="Welcome to MyTest’s documentation!"
+          <a href="index.html" title="歡迎來到我的Django framework筆記"
              >previous</a> |</li>
         <li><a href="index.html">MyTest 1.0 documentation</a> &raquo;</li> 
       </ul>

@@ -3,15 +3,22 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to MyTest's documentation!
-==================================
+歡迎來到我的Django framework筆記
+================================
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
    
-   Django deployment with nginx+gunicorn <django_deploy>
+   利用nginx 及 gunicorn來佈署Django application <django_deploy>
+   利用django-crontab來佈署系統cron jobs <django_crontab>
+   Django登入畫面範例 <django_loginpage>
+   Django Email範例 <django_email>
+   Django + Jquery Programming Pattern I <django_jquery_pattern_1>
+   Django + Jquery Programming Pattern II <django_jquery_pattern_2>
+   信用卡金流串接範例 <django_creditcard>
+   虛擬帳號金流串接範例 <django_virtaulatm>
 
 
 Indices and tables
