@@ -15,10 +15,10 @@ Contents:
    利用django-crontab來佈署系統cron jobs <django_crontab>
    Django Email範例 <django_email>
    Django登入畫面範例 <django_loginpage>
-   Django + Jquery Programming Pattern I <django_jquery_pattern_1>
-   Django + Jquery Programming Pattern II <django_jquery_pattern_2>
    信用卡金流串接範例 <django_creditcard>
    虛擬帳號金流串接範例 <django_virtaulatm>
+   Django + Jquery Programming Pattern I <django_jquery_pattern_1>
+   Django + Jquery Programming Pattern II <django_jquery_pattern_2>
 
 
 Indices and tables

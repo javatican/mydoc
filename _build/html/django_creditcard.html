@@ -1,0 +1,329 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>信用卡金流串接範例 &mdash; MyNotes 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="MyNotes 1.0 documentation" href="index.html" />
+    <link rel="prev" title="Django 登入畫面範例" href="django_loginpage.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="django_loginpage.html" title="Django 登入畫面範例"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">MyNotes 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="id1">
+<h1>信用卡金流串接範例<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id2">
+<h2>重要參數設定:<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">SERVER_URL:</th><td class="field-body">本身server url</td>
+</tr>
+<tr class="field-even field"><th class="field-name">CLIENT_ID:</th><td class="field-body">金流處理公司所給予的client id</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">PAYMENT_URL:</th><td class="field-body">金流處理server url</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="form-class">
+<h2>Form class: 定義要傳給第三方金流公司的參數<a class="headerlink" href="#form-class" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">包含訂單編號, client id, 金額, callback url等:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">CreditCardConfirmForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">):</span>
+    <span class="c"># 訂單編號: 當callback被呼叫時, 會傳入</span>
+    <span class="n">od_sob</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">widget</span><span class="o">=</span><span class="n">HiddenInput</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;od_sob&#39;</span><span class="p">))</span>
+    <span class="n">act</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">widget</span><span class="o">=</span><span class="n">HiddenInput</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="s">&quot;auth&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;act&#39;</span><span class="p">))</span>
+    <span class="c"># client id</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">widget</span><span class="o">=</span><span class="n">HiddenInput</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">CLIENT_ID</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;client&#39;</span><span class="p">))</span>
+    <span class="c"># 金額</span>
+    <span class="n">amount</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">widget</span><span class="o">=</span><span class="n">HiddenInput</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;amount&#39;</span><span class="p">))</span>
+    <span class="c"># callback url</span>
+    <span class="n">roturl</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">widget</span><span class="o">=</span><span class="n">HiddenInput</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;roturl&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="view-function-render-form-template-code">
+<h2>View function: render form template code<a class="headerlink" href="#view-function-render-form-template-code" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">callbackUrl</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">SERVER_URL</span><span class="p">,</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;family_order_complete_module&#39;</span><span class="p">))</span>
+<span class="n">credit_card_form</span> <span class="o">=</span> <span class="n">CreditCardConfirmForm</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;od_sob&#39;</span><span class="p">:</span><span class="n">new_order</span><span class="o">.</span><span class="n">trans_id</span><span class="p">,</span>
+                                                  <span class="s">&#39;amount&#39;</span><span class="p">:</span><span class="n">new_order</span><span class="o">.</span><span class="n">price</span><span class="p">,</span>
+                                                  <span class="s">&#39;roturl&#39;</span><span class="p">:</span> <span class="n">callbackUrl</span><span class="p">,</span>
+                                                  <span class="p">})</span>
+<span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+              <span class="s">&#39;family/credit_card_payment_module.html&#39;</span><span class="p">,</span>
+              <span class="p">{</span><span class="s">&#39;credit_card_payment_url&#39;</span><span class="p">:</span><span class="n">settings</span><span class="o">.</span><span class="n">PAYMENT_URL</span><span class="p">,</span>
+               <span class="s">&#39;form&#39;</span><span class="p">:</span> <span class="n">credit_card_form</span><span class="p">,</span>
+               <span class="p">})</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="template-code-order-form">
+<h2>Template code: 自動送出order form<a class="headerlink" href="#template-code-order-form" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li>這個頁面其實是可以讓使用者再確認金額及商品明細等資訊, 然後再送出request到金流處理server去, 但是為了方便起見, 這裡做了auto form submit.</li>
+</ul>
+</div></blockquote>
+<div class="highlight-python"><pre>{% load i18n %}
+&lt;!----------------註解開始 template路徑: {{ template_name }} ----------------&gt;
+&lt;form method="post" id="credit_card_payment_form" action="{{credit_card_payment_url}}"&gt;
+{{ form.od_sob }}
+{{ form.act }}
+{{ form.client }}
+{{ form.amount }}
+{{ form.roturl }}
+&lt;/form&gt;
+&lt;script&gt;
+    document.getElementById("credit_card_payment_form").submit();
+&lt;/script&gt;
+&lt;!----------------註解結束 template路徑: {{ template_name }} ----------------&gt;</pre>
+</div>
+</div>
+<div class="section" id="model-form-class-servercall">
+<h2>Model/Form class: 用來儲存金流處理server回call時, 傳入的參數<a class="headerlink" href="#model-form-class-servercall" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">Model class:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">CreditCenterResponse</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;client&#39;</span><span class="p">))</span>
+    <span class="n">succ</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;succ&#39;</span><span class="p">))</span>
+    <span class="n">gwsr</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;gwsr&#39;</span><span class="p">))</span>
+    <span class="n">response_code</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;response_code&#39;</span><span class="p">))</span>
+    <span class="n">response_msg</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;response_msg&#39;</span><span class="p">))</span>
+    <span class="n">process_date</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;process_date&#39;</span><span class="p">))</span>
+    <span class="n">process_time</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;process_time&#39;</span><span class="p">))</span>
+    <span class="n">od_sob</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;od_sob&#39;</span><span class="p">))</span>
+    <span class="n">auth_code</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;auth_code&#39;</span><span class="p">))</span>
+    <span class="n">amount</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;amount&#39;</span><span class="p">))</span>
+    <span class="n">od_hoho</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;od_hoho&#39;</span><span class="p">))</span>
+    <span class="n">eci</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;eci&#39;</span><span class="p">))</span>
+    <span class="n">red_dan</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;red_dan&#39;</span><span class="p">))</span>
+    <span class="n">red_de_amt</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;red_de_amt&#39;</span><span class="p">))</span>
+    <span class="n">red_ok_amt</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;red_ok_amt&#39;</span><span class="p">))</span>
+    <span class="n">red_yet</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;red_yet&#39;</span><span class="p">))</span>
+    <span class="n">rech_key</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;rech_key&#39;</span><span class="p">))</span>
+    <span class="n">inspect</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;inspect&#39;</span><span class="p">))</span>
+    <span class="n">spcheck</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;spcheck&#39;</span><span class="p">))</span>
+    <span class="n">card4no</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;card4no&#39;</span><span class="p">))</span>
+    <span class="n">card6no</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;card6no&#39;</span><span class="p">))</span>
+    <span class="n">expire_dt</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;expire_dt&#39;</span><span class="p">))</span>
+    <span class="n">inv_error</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;inv_error&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Form class - 以一 ModelForm 來實作:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">CreditCenterResponseForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">ModelForm</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">CreditCenterResponse</span>
+        <span class="n">exclude</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="callback-view-function">
+<h2>Callback view function 範例:<a class="headerlink" href="#callback-view-function" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">callback的流程如下:</p>
+<ol class="arabic">
+<li><p class="first">先將回傳的所有POST參數寫入DB中:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">instance</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">取得當初傳給金流處理server的訂單代碼, 取出訂單物件:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">od_sob</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">od_sob</span>
+<span class="n">class_trans</span> <span class="o">=</span> <span class="n">Class_Trans</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">initialized_only</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">trans_id</span><span class="o">=</span><span class="n">od_sob</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>備註: 這裡需注意金流處理server有可能對同一訂單代碼, 呼叫多次 callback function. 有可能是因為使用者還沒有看到回應畫面便refresh page. 因此這裡在做訂單query時, 要針對訂單狀態做filter.</p>
+</li>
+<li><p class="first">由於需要取得使用者物件, 以顯示相關訂單訊息, 原本是從session去取得這些資訊, 但是發現有時候session 會異常被清除, 取不到任何session 資料, 因此這裡改寫, 萬一取不到session, 改由訂單代碼來取得使用者物件:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">member_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;member_pk&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">member_id</span><span class="p">:</span>
+    <span class="n">member_id</span> <span class="o">=</span> <span class="n">class_trans</span><span class="o">.</span><span class="n">member_id</span>
+<span class="n">member</span> <span class="o">=</span> <span class="n">Member</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">member_id</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</li>
+<li><p class="first">範例:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@csrf_exempt</span>
+<span class="nd">@transaction.commit_manually</span>
+<span class="k">def</span> <span class="nf">order_complete_module</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c">#</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span><span class="p">:</span>
+            <span class="n">form</span> <span class="o">=</span> <span class="n">CreditCenterResponseForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+                <span class="n">instance</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                <span class="c"># get trans_id</span>
+                <span class="n">od_sob</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">od_sob</span>
+                <span class="c"># 20130602 Ryan note:</span>
+                <span class="c"># credit center may mistakenly call this function more than once, so</span>
+                <span class="c"># need to add payment_status filter</span>
+                <span class="c"># only status with &#39;initialized&#39; can be selected</span>
+                <span class="n">class_trans</span> <span class="o">=</span> <span class="n">Class_Trans</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">initialized_only</span><span class="p">()</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s">&quot;klass&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">trans_id</span><span class="o">=</span><span class="n">od_sob</span><span class="p">)</span>
+                <span class="n">member_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;member_pk&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">member_id</span><span class="p">:</span>
+                    <span class="n">member_id</span> <span class="o">=</span> <span class="n">class_trans</span><span class="o">.</span><span class="n">member_id</span>
+                <span class="n">member</span> <span class="o">=</span> <span class="n">Member</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">member_id</span><span class="p">)</span>
+                <span class="c">#</span>
+                <span class="n">succ</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">succ</span>
+                <span class="k">if</span> <span class="n">succ</span><span class="p">:</span>
+                    <span class="n">class_trans</span><span class="o">.</span><span class="n">payment_status</span> <span class="o">=</span> <span class="n">Class_Trans</span><span class="o">.</span><span class="n">PAYMENT_STATUS_CODE</span><span class="p">[</span><span class="s">&#39;COMPLETE&#39;</span><span class="p">]</span>
+                    <span class="n">class_trans</span><span class="o">.</span><span class="n">trans_complete_date</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+                    <span class="n">class_trans</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                    <span class="n">klass</span> <span class="o">=</span> <span class="n">class_trans</span><span class="o">.</span><span class="n">klass</span>
+                    <span class="c"># update klass confirmed_register_count</span>
+                    <span class="k">if</span> <span class="n">class_trans</span><span class="o">.</span><span class="n">member_status_code</span> <span class="o">==</span> <span class="n">MEMBER_STATUS_CODE</span><span class="p">[</span><span class="s">&#39;GROUP&#39;</span><span class="p">]:</span>
+                        <span class="n">klass</span><span class="o">.</span><span class="n">confirmed_register_count</span> <span class="o">=</span> <span class="n">F</span><span class="p">(</span><span class="s">&#39;confirmed_register_count&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">klass</span><span class="o">.</span><span class="n">confirmed_register_count</span> <span class="o">=</span> <span class="n">F</span><span class="p">(</span><span class="s">&#39;confirmed_register_count&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">klass</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                    <span class="c"># send a confirm email</span>
+                    <span class="n">confirm_payment_email_ok</span> <span class="o">=</span> <span class="n">_family_send_confirm_payment_email</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">klass</span><span class="p">,</span> <span class="n">class_trans</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;payment_type_credit_card&quot;</span><span class="p">))</span>
+                    <span class="n">class_trans</span><span class="o">.</span><span class="n">confirm_payment_email_ok</span> <span class="o">=</span> <span class="n">confirm_payment_email_ok</span>
+                    <span class="n">class_trans</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                    <span class="c">#</span>
+                    <span class="n">survey_url</span> <span class="o">=</span> <span class="n">class_trans</span><span class="o">.</span><span class="n">get_survey_url</span><span class="p">()</span>
+                    <span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Congratulation! Your registration and payment have completed!&quot;</span><span class="p">)</span>
+                    <span class="n">transaction</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;family/order_complete.html&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;success&#39;</span><span class="p">:</span><span class="n">succ</span><span class="p">,</span>
+                                                                          <span class="s">&#39;message&#39;</span><span class="p">:</span><span class="n">message</span><span class="p">,</span>
+                                                                          <span class="s">&#39;klass&#39;</span><span class="p">:</span> <span class="n">klass</span><span class="p">,</span>
+                                                                          <span class="s">&#39;register_index&#39;</span><span class="p">:</span><span class="n">class_trans</span><span class="o">.</span><span class="n">register_index</span><span class="p">,</span>
+                                                                          <span class="s">&#39;survey_url&#39;</span><span class="p">:</span><span class="n">survey_url</span><span class="p">,</span>
+                                                                          <span class="s">&#39;family_url&#39;</span><span class="p">:</span> <span class="n">settings</span><span class="o">.</span><span class="n">FAMILY_WEB_SITE_URL</span><span class="p">})</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">class_trans</span><span class="o">.</span><span class="n">payment_status</span> <span class="o">=</span> <span class="n">Class_Trans</span><span class="o">.</span><span class="n">PAYMENT_STATUS_CODE</span><span class="p">[</span><span class="s">&#39;FAILED&#39;</span><span class="p">]</span>
+                    <span class="n">class_trans</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                    <span class="n">response_msg</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">response_msg</span>
+                    <span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Your payment has failed. Error message: </span><span class="si">%(error_msg)s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">{</span><span class="s">&#39;error_msg&#39;</span><span class="p">:</span><span class="n">response_msg</span><span class="p">}</span>
+                    <span class="n">transaction</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;family/order_complete.html&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;success&#39;</span><span class="p">:</span><span class="n">succ</span><span class="p">,</span> <span class="s">&#39;message&#39;</span><span class="p">:</span><span class="n">message</span><span class="p">,</span> <span class="s">&#39;family_url&#39;</span><span class="p">:</span> <span class="n">settings</span><span class="o">.</span><span class="n">FAMILY_WEB_SITE_URL</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># doen&#39;t support GET</span>
+            <span class="c"># not quite sure why it keeps being called</span>
+            <span class="c"># log GET parameters</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span> <span class="p">:</span>
+                    <span class="k">print</span> <span class="s">&quot;key=</span><span class="si">%s</span><span class="s">, value=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">transaction</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+        <span class="n">error_id</span> <span class="o">=</span> <span class="n">unique_id</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Error when calling </span><span class="si">%s</span><span class="s">: error_id=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">_getframe</span><span class="p">()</span><span class="o">.</span><span class="n">f_code</span><span class="o">.</span><span class="n">co_name</span><span class="p">,</span> <span class="n">error_id</span><span class="p">),</span> <span class="n">exc_info</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Unexpected Error: error_id=</span><span class="si">%(error_id)s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">{</span><span class="s">&#39;error_id&#39;</span><span class="p">:</span> <span class="n">error_id</span><span class="p">}</span>
+        <span class="n">status_code</span> <span class="o">=</span> <span class="mi">500</span>
+        <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&quot;500.html&quot;</span><span class="p">,</span> <span class="n">dictionary</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;message&#39;</span><span class="p">:</span><span class="n">message</span><span class="p">,</span> <span class="p">},</span> <span class="n">status</span><span class="o">=</span><span class="n">status_code</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">信用卡金流串接範例</a><ul>
+<li><a class="reference internal" href="#id2">重要參數設定:</a></li>
+<li><a class="reference internal" href="#form-class">Form class: 定義要傳給第三方金流公司的參數</a></li>
+<li><a class="reference internal" href="#view-function-render-form-template-code">View function: render form template code</a></li>
+<li><a class="reference internal" href="#template-code-order-form">Template code: 自動送出order form</a></li>
+<li><a class="reference internal" href="#model-form-class-servercall">Model/Form class: 用來儲存金流處理server回call時, 傳入的參數</a></li>
+<li><a class="reference internal" href="#callback-view-function">Callback view function 範例:</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="django_loginpage.html"
+                        title="previous chapter">Django 登入畫面範例</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/django_creditcard.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="django_loginpage.html" title="Django 登入畫面範例"
+             >previous</a> |</li>
+        <li><a href="index.html">MyNotes 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Ryan Nieh.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
