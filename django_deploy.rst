@@ -5,30 +5,25 @@
 Django的設定
 ------------
 
-- 正式deploy時, 要將static content(css, js, images, 與user-uploaded files)與程式分開
+- 正式環境需將static content(css, js, images, 與user-uploaded files)與程式分開
 
-  - STATIC_ROOT setting::
+  - STATIC_ROOT設定值::
 
         STATIC_ROOT = '/var/www/html/djangophp/static/'
 
-  - MEDIA_ROOT setting::
-  
-        MEDIA_ROOT = '/var/www/html/djangophp/media/’
-
-  - STATIC_ROOT設定值:
-
-    - 在正式deployment環境下才會使用到的設定
+    - 在正式環境下才會使用到的設定
 
     - 可以利用 **$python manage.py collectstatic** 來將STATICFILES_DIRS設定的static file directories的內容copy到STATIC_ROOT下
 
+  - MEDIA_ROOT設定::
 
-  - MEDIA_ROOT設定:
+        MEDIA_ROOT = '/var/www/html/djangophp/media/'
 
-    - 需在development環境與正式deployment環境下使用不同的設定值,例如:
+    - 需在開發環境與正式環境下使用不同的設定值,例如:
 
       - development環境::
             
- 	    MEDIA_ROOT = os.path.join(_PATH, 'media')
+ 	    MEDIA_ROOT = os.path.join(_PATH, 'media') 亦即 /home/migulu/djangophp/djangophp/media/
 
       - deployment setting::
 
@@ -36,13 +31,16 @@ Django的設定
 
     - 因此如果需要(例如測試主機與正式主機的user-upload files需要同步)則必須手動將檔案複製到MEDIA_ROOT路徑下
 
-      notes: 檔案上傳將會寫入到MEDIA_ROOT路徑中, 因此這裡必須讓執行gunicorn的process所有權者(migulu)有write的權限. 可是這樣會需要/var/www/html/djangophp/media/ 該路徑以上的所有parent directories都要開放給migulu user write的權限. 這樣不是好的方法.
-
-      因此還是將MEDIA_ROOT設定在development環境下的MEDIA_ROOT 亦即 /home/migulu/djangophp/djangophp/media/ 下, 然後建立一個目錄連結(mount 方式) 由 '/var/www/html/djangophp/media/' 指向development環境下的MEDIA_ROOT設定, 如此可以讓gunicorn process可以寫入檔案, nginx process可以讀取. ::
+      notes: 
       
-          mount --bind /home/migulu/djangophp/djangophp/media/ /var/www/html/djangophp/media
+      檔案上傳將會寫入到MEDIA_ROOT路徑中, 因此這裡必須讓執行gunicorn的process所有權者有write的權限. 可是這樣會需要/var/www/html/djangophp/media/ 該路徑以上的所有parent directories都要開放給該 user 有write的權限. 這樣不是好的方法.
+
+      因此還是將MEDIA_ROOT設定在開發環境下的MEDIA_ROOT下, 然後建立一個目錄連結(mount 方式) 由 '/var/www/html/djangophp/media/' 指向開發環境下的MEDIA_ROOT設定, 如此可以讓gunicorn process可以寫入檔案, nginx process可以讀取. ::
+      
+          mount --bind /home/migulu/djangophp/djangophp/media /var/www/html/djangophp/media
 
   - urls.py中的root urlpattern設定: 
+
     - 為了讓django與php能夠在同一個server下執行, nginx中的location設定須將兩者的url區分開, 因此django的root url改到django/下 ::
 
           urlpatterns += patterns('',
@@ -110,9 +108,9 @@ nginx設定
 
 - 注意STATIC_ROOT及MEDIA_ROOT路徑下的directory/file permissions.
 
-  - 必須要讓執行nginx的process的所有權者(nginx), 能夠有這些路徑的read權限
+  - 必須要讓執行nginx的process的所有權者, 能夠有這些路徑的read權限
 
-  - 若是要能夠寫入檔案(user uploading files), 則需讓執行gunicorn的process所有權者(migulu)有MEDIA_ROOT的write 權限(或者利用前面所提及的mount方式之目錄連結).
+  - 若是要能夠寫入檔案(user uploading files), 則需讓執行gunicorn的process所有權者有MEDIA_ROOT的write 權限(或者利用前面所提及的mount方式之目錄連結).
 
 
 

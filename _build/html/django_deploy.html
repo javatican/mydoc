@@ -24,6 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="MyNotes 1.0 documentation" href="index.html" />
+    <link rel="next" title="利用django-crontab來佈署系統cron jobs" href="django_crontab.html" />
     <link rel="prev" title="歡迎來到我的Django framework筆記" href="index.html" /> 
   </head>
   <body>
@@ -33,6 +34,9 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="django_crontab.html" title="利用django-crontab來佈署系統cron jobs"
+             accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="index.html" title="歡迎來到我的Django framework筆記"
              accesskey="P">previous</a> |</li>
@@ -50,30 +54,26 @@
 <div class="section" id="django">
 <h2>Django的設定<a class="headerlink" href="#django" title="Permalink to this headline">¶</a></h2>
 <ul>
-<li><p class="first">正式deploy時, 要將static content(css, js, images, 與user-uploaded files)與程式分開</p>
+<li><p class="first">正式環境需將static content(css, js, images, 與user-uploaded files)與程式分開</p>
 <ul>
-<li><p class="first">STATIC_ROOT setting:</p>
+<li><p class="first">STATIC_ROOT設定值:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">STATIC_ROOT</span> <span class="o">=</span> <span class="s">&#39;/var/www/html/djangophp/static/&#39;</span>
 </pre></div>
 </div>
-</li>
-<li><p class="first">MEDIA_ROOT setting:</p>
-<div class="highlight-python"><pre>MEDIA_ROOT = '/var/www/html/djangophp/media/’</pre>
-</div>
-</li>
-<li><p class="first">STATIC_ROOT設定值:</p>
 <ul class="simple">
-<li>在正式deployment環境下才會使用到的設定</li>
+<li>在正式環境下才會使用到的設定</li>
 <li>可以利用 <strong>$python manage.py collectstatic</strong> 來將STATICFILES_DIRS設定的static file directories的內容copy到STATIC_ROOT下</li>
 </ul>
 </li>
 <li><p class="first">MEDIA_ROOT設定:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">MEDIA_ROOT</span> <span class="o">=</span> <span class="s">&#39;/var/www/html/djangophp/media/&#39;</span>
+</pre></div>
+</div>
 <ul>
-<li><p class="first">需在development環境與正式deployment環境下使用不同的設定值,例如:</p>
+<li><p class="first">需在開發環境與正式環境下使用不同的設定值,例如:</p>
 <ul>
 <li><p class="first">development環境:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">MEDIA_ROOT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_PATH</span><span class="p">,</span> <span class="s">&#39;media&#39;</span><span class="p">)</span>
-</pre></div>
+<div class="highlight-python"><pre>MEDIA_ROOT = os.path.join(_PATH, 'media') 亦即 /home/migulu/djangophp/djangophp/media/</pre>
 </div>
 </li>
 <li><p class="first">deployment setting:</p>
@@ -84,20 +84,25 @@
 </ul>
 </li>
 <li><p class="first">因此如果需要(例如測試主機與正式主機的user-upload files需要同步)則必須手動將檔案複製到MEDIA_ROOT路徑下</p>
-<p>notes: 檔案上傳將會寫入到MEDIA_ROOT路徑中, 因此這裡必須讓執行gunicorn的process所有權者(migulu)有write的權限. 可是這樣會需要/var/www/html/djangophp/media/ 該路徑以上的所有parent directories都要開放給migulu user write的權限. 這樣不是好的方法.</p>
-<p>因此還是將MEDIA_ROOT設定在development環境下的MEDIA_ROOT 亦即 /home/migulu/djangophp/djangophp/media/ 下, 然後建立一個目錄連結(mount 方式) 由 &#8216;/var/www/html/djangophp/media/&#8217; 指向development環境下的MEDIA_ROOT設定, 如此可以讓gunicorn process可以寫入檔案, nginx process可以讀取.</p>
-<div class="highlight-python"><pre>mount --bind /home/migulu/djangophp/djangophp/media/ /var/www/html/djangophp/media</pre>
+<p>notes:</p>
+<p>檔案上傳將會寫入到MEDIA_ROOT路徑中, 因此這裡必須讓執行gunicorn的process所有權者有write的權限. 可是這樣會需要/var/www/html/djangophp/media/ 該路徑以上的所有parent directories都要開放給該 user 有write的權限. 這樣不是好的方法.</p>
+<p>因此還是將MEDIA_ROOT設定在開發環境下的MEDIA_ROOT下, 然後建立一個目錄連結(mount 方式) 由 &#8216;/var/www/html/djangophp/media/&#8217; 指向開發環境下的MEDIA_ROOT設定, 如此可以讓gunicorn process可以寫入檔案, nginx process可以讀取.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mount</span> <span class="o">--</span><span class="n">bind</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">migulu</span><span class="o">/</span><span class="n">djangophp</span><span class="o">/</span><span class="n">djangophp</span><span class="o">/</span><span class="n">media</span> <span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">html</span><span class="o">/</span><span class="n">djangophp</span><span class="o">/</span><span class="n">media</span>
+</pre></div>
 </div>
 </li>
 </ul>
 </li>
-<li><p class="first">urls.py中的root urlpattern設定:
-- 為了讓django與php能夠在同一個server下執行, nginx中的location設定須將兩者的url區分開, 因此django的root url改到django/下</p>
+<li><p class="first">urls.py中的root urlpattern設定:</p>
+<ul>
+<li><p class="first">為了讓django與php能夠在同一個server下執行, nginx中的location設定須將兩者的url區分開, 因此django的root url改到django/下</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">urlpatterns</span> <span class="o">+=</span> <span class="n">patterns</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span>
     <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^django/$&#39;</span><span class="p">,</span> <span class="s">&#39;orion.views.news_list&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;news_list&#39;</span><span class="p">),</span>
 <span class="p">)</span>
 </pre></div>
 </div>
+</li>
+</ul>
 </li>
 </ul>
 </li>
@@ -168,8 +173,8 @@
 </li>
 <li><p class="first">注意STATIC_ROOT及MEDIA_ROOT路徑下的directory/file permissions.</p>
 <ul class="simple">
-<li>必須要讓執行nginx的process的所有權者(nginx), 能夠有這些路徑的read權限</li>
-<li>若是要能夠寫入檔案(user uploading files), 則需讓執行gunicorn的process所有權者(migulu)有MEDIA_ROOT的write 權限(或者利用前面所提及的mount方式之目錄連結).</li>
+<li>必須要讓執行nginx的process的所有權者, 能夠有這些路徑的read權限</li>
+<li>若是要能夠寫入檔案(user uploading files), 則需讓執行gunicorn的process所有權者有MEDIA_ROOT的write 權限(或者利用前面所提及的mount方式之目錄連結).</li>
 </ul>
 </li>
 </ul>
@@ -195,6 +200,9 @@
   <h4>Previous topic</h4>
   <p class="topless"><a href="index.html"
                         title="previous chapter">歡迎來到我的Django framework筆記</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="django_crontab.html"
+                        title="next chapter">利用django-crontab來佈署系統cron jobs</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/django_deploy.txt"
@@ -223,6 +231,9 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
+        <li class="right" >
+          <a href="django_crontab.html" title="利用django-crontab來佈署系統cron jobs"
+             >next</a> |</li>
         <li class="right" >
           <a href="index.html" title="歡迎來到我的Django framework筆記"
              >previous</a> |</li>
