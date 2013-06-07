@@ -13,8 +13,8 @@ Contents:
    
    利用nginx 及 gunicorn來佈署Django application <django_deploy>
    利用django-crontab來佈署系統cron jobs <django_crontab>
-   Django登入畫面範例 <django_loginpage>
    Django Email範例 <django_email>
+   Django登入畫面範例 <django_loginpage>
    Django + Jquery Programming Pattern I <django_jquery_pattern_1>
    Django + Jquery Programming Pattern II <django_jquery_pattern_2>
    信用卡金流串接範例 <django_creditcard>

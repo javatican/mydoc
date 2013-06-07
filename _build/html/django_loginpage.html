@@ -1,0 +1,207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Django 登入畫面範例 &mdash; MyNotes 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="MyNotes 1.0 documentation" href="index.html" />
+    <link rel="prev" title="Django Email 範例" href="django_email.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="django_email.html" title="Django Email 範例"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">MyNotes 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="django">
+<h1>Django 登入畫面範例<a class="headerlink" href="#django" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="settings-py">
+<h2>settings.py<a class="headerlink" href="#settings-py" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">LOGIN_URL</span> <span class="o">=</span> <span class="n">reverse_lazy</span><span class="p">(</span><span class="s">&#39;login&#39;</span><span class="p">)</span>
+<span class="n">LOGIN_REDIRECT_URL</span><span class="o">=</span><span class="n">reverse_lazy</span><span class="p">(</span><span class="s">&#39;after_login_main_page&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>備註:</dt>
+<dd><ol class="first last arabic simple">
+<li>LOGIN_REDIRECT_URL設定登入成功後要redirect過去的url(若沒有指定next參數時)</li>
+<li>LOGIN_URL及LOGIN_REDIRECT_URL在Django1.5版之後, 可以使用named URL patterns</li>
+</ol>
+</dd>
+</dl>
+</div>
+<div class="section" id="urls-py">
+<h2>urls.py<a class="headerlink" href="#urls-py" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">可以利用django auth module所提供的login, logout view functions</p>
+<ul class="simple">
+<li>login()可以傳入template_name, authentication_form等<ul>
+<li>template_name: 指定要回傳的html template</li>
+<li>authentication_form: login template所要搭配使用的form class, 預設使用 <strong>AuthenticationForm</strong></li>
+</ul>
+</li>
+<li>logout()可以傳入next_page, template_name 等參數<ul>
+<li>next_page: 指定要redirect去的url (higher priority than &#8216;template_name&#8217;)</li>
+<li>template_name: 指定要回傳的html template</li>
+</ul>
+</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.contrib.auth.views</span> <span class="kn">import</span> <span class="n">login</span><span class="p">,</span> <span class="n">logout</span>
+<span class="n">url</span><span class="p">(</span><span class="s">r&#39;^login/$&#39;</span><span class="p">,</span> <span class="n">login</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;template_name&#39;</span><span class="p">:</span><span class="s">&#39;family/admin_login.html&#39;</span><span class="p">,},</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;login&#39;</span><span class="p">),</span>
+<span class="n">url</span><span class="p">(</span><span class="s">r&#39;^logout/$&#39;</span><span class="p">,</span> <span class="n">logout</span><span class="p">,</span>  <span class="p">{</span><span class="s">&#39;next_page&#39;</span><span class="p">:</span> <span class="s">&#39;/family/login/&#39;</span><span class="p">},</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;logout&#39;</span><span class="p">),</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">AuthenticationForm, 包含username, password兩個fields</p>
+</li>
+</ul>
+</div>
+<div class="section" id="view-functions-need-login-protection">
+<h2>View functions need login protection<a class="headerlink" href="#view-functions-need-login-protection" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">use <strong>&#64;login_required</strong> decorator, 來標示view functions 需要先登入才能被呼叫:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@login_required</span>
+<span class="k">def</span> <span class="nf">update_member_adv_class_setting</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">若使用者尚未登入,</p>
+<ul class="simple">
+<li>則會redirect到settings.py中所設定的登入畫面網址, 亦即 <strong>LOGIN_URL</strong></li>
+<li>並會在url後加上 <strong>next</strong> 參數, 作為登入後要redirect去的url</li>
+<li>login()會讀入next參數, 並將其寫入context中, 供template取得該參數</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="login-template">
+<h2>Login template 範例<a class="headerlink" href="#login-template" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>記得&lt;form&gt;的action屬性要使用 <strong>next={{next}}</strong> , 以傳入登入成功後要執行的view function</li>
+<li>username,password的驗證實際是在form.clean()中進行, 因此當登入失敗時, login()會將錯誤訊息寫入到 <strong>form.non_field_errors</strong> 中</li>
+</ul>
+<div class="highlight-python"><pre>{% if form.non_field_errors  %}
+  {{ form.non_field_errors }}
+{% endif %}
+
+&lt;form method="post" id="admin_login_form" action="{% url login %}?next={{next}}"&gt;
+    &lt;div align="center"&gt;{% csrf_token %}&lt;/div&gt;
+    &lt;table&gt;
+        &lt;tr&gt;&lt;td/&gt;&lt;td colspan="3"&gt;&lt;span class="function_title"&gt;{% trans "請登入:" %}&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;
+        &lt;td width="80"  &gt;&amp;nbsp;&lt;/td&gt;
+        &lt;td width="100"  &gt;{{ form.username.label_tag }} :&lt;/td&gt;
+          &lt;td width="400"&gt;{{ form.username }}&lt;/td&gt;
+          &lt;td width="210"&gt;{{ form.username.errors }}&lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;tr&gt;
+        &lt;td &gt;&amp;nbsp;&lt;/td&gt;
+        &lt;td &gt;{{ form.password.label_tag }} :&lt;/td&gt;
+        &lt;td&gt;{{ form.password }}&lt;/td&gt;
+        &lt;td&gt;{{ form.password.errors }}&lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;tr&gt;
+        &lt;td&gt;&amp;nbsp;&lt;/td&gt;
+        &lt;td&gt;&amp;nbsp;&lt;/td&gt;
+          &lt;td height="50"&gt;&lt;button type="submit" id="admin_login_action" &gt;{% trans "登入" %}&lt;/button&gt;&lt;/td&gt;
+          &lt;td&gt;&amp;nbsp;&lt;/td&gt;
+        &lt;/tr&gt;
+    &lt;/table&gt;
+&lt;/form&gt;</pre>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Django 登入畫面範例</a><ul>
+<li><a class="reference internal" href="#settings-py">settings.py</a></li>
+<li><a class="reference internal" href="#urls-py">urls.py</a></li>
+<li><a class="reference internal" href="#view-functions-need-login-protection">View functions need login protection</a></li>
+<li><a class="reference internal" href="#login-template">Login template 範例</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="django_email.html"
+                        title="previous chapter">Django Email 範例</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/django_loginpage.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="django_email.html" title="Django Email 範例"
+             >previous</a> |</li>
+        <li><a href="index.html">MyNotes 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Ryan Nieh.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
