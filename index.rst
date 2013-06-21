@@ -11,6 +11,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
    
+   ipython安裝及與virtualenv一起使用 <ipython_virtualenv>
    利用nginx 及 gunicorn來佈署Django application <django_deploy>
    利用django-crontab來佈署系統cron jobs <django_crontab>
    Django Email範例 <django_email>

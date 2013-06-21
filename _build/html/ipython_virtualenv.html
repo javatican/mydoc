@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ipython安裝及與virtualenv一起使用 &mdash; MyNotes 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="MyNotes 1.0 documentation" href="index.html" />
+    <link rel="next" title="利用nginx 及 gunicorn來佈署Django application" href="django_deploy.html" />
+    <link rel="prev" title="歡迎來到我的Django framework筆記" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="django_deploy.html" title="利用nginx 及 gunicorn來佈署Django application"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="歡迎來到我的Django framework筆記"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">MyNotes 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ipythonvirtualenv">
+<h1>ipython安裝及與virtualenv一起使用<a class="headerlink" href="#ipythonvirtualenv" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="create-ipython-profile-setting-file">
+<h2>1. create ipython profile setting file:<a class="headerlink" href="#create-ipython-profile-setting-file" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><pre>$ ipython profile create</pre>
+</div>
+<ul class="simple">
+<li>建立~/.config/ipython/profile_default/ipython_config.py</li>
+</ul>
+<div class="highlight-python"><pre>$ ipython profile create &lt;name&gt;</pre>
+</div>
+<ul class="simple">
+<li>建立~/.config/ipython/ <strong>&lt;name&gt;</strong> /ipython_config.py</li>
+</ul>
+</div>
+<div class="section" id="ipython">
+<h2>2. 啟動ipython<a class="headerlink" href="#ipython" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>可指定 profile, 或不指定則使用default profile</li>
+</ul>
+<div class="highlight-python"><pre>$ ipython --profile=&lt;name&gt;</pre>
+</div>
+<ul class="simple">
+<li>初次啟用時發生錯誤, <strong>ImportError: No module named IPython.frontend.terminal.ipapp</strong>&#8221;, 需在/usr/bin/ipython檔案加入</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
+<span class="k">if</span> <span class="s">&quot;/usr/lib/python2.7/dist-packages&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;/usr/lib/python2.7/dist-packages&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="ipython-virtualenv">
+<h2>3. 讓ipython 與 virtualenv一併使用:<a class="headerlink" href="#ipython-virtualenv" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>需要在ipython_config.py中加入</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">site</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">environ</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="k">if</span> <span class="s">&#39;VIRTUAL_ENV&#39;</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+    <span class="n">virtual_env</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;VIRTUAL_ENV&#39;</span><span class="p">),</span>
+                       <span class="s">&#39;lib&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;python</span><span class="si">%d</span><span class="s">.</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span>
+                       <span class="s">&#39;site-packages&#39;</span><span class="p">)</span>
+
+    <span class="c"># Remember original sys.path.</span>
+    <span class="n">prev_sys_path</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">site</span><span class="o">.</span><span class="n">addsitedir</span><span class="p">(</span><span class="n">virtual_env</span><span class="p">)</span>
+
+    <span class="c"># Personal hack</span>
+    <span class="c"># Remove /usr/lib/python2.7/dist-packages and associates from the path</span>
+    <span class="c"># Counter the effects of this code, in /usr/bin/ipython</span>
+    <span class="c"># import sys</span>
+        <span class="c"># if &quot;/usr/lib/python2.7/dist-packages&quot; not in sys.path:</span>
+    <span class="c">#     sys.path.append(&quot;/usr/lib/python2.7/dist-packages&quot;)</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&#39;/usr/lib/python2.7/dist-packages&#39;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+
+    <span class="c"># Reorder sys.path so new directories at the front.</span>
+    <span class="n">new_sys_path</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">prev_sys_path</span><span class="p">:</span>
+            <span class="n">new_sys_path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_sys_path</span>
+
+    <span class="k">print</span> <span class="s">&#39;VIRTUAL_ENV -&gt;&#39;</span><span class="p">,</span> <span class="n">virtual_env</span>
+    <span class="k">del</span> <span class="n">virtual_env</span>
+<span class="k">del</span> <span class="n">sys</span><span class="p">,</span> <span class="n">site</span><span class="p">,</span> <span class="n">environ</span><span class="p">,</span> <span class="n">join</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ipython安裝及與virtualenv一起使用</a><ul>
+<li><a class="reference internal" href="#create-ipython-profile-setting-file">1. create ipython profile setting file:</a></li>
+<li><a class="reference internal" href="#ipython">2. 啟動ipython</a></li>
+<li><a class="reference internal" href="#ipython-virtualenv">3. 讓ipython 與 virtualenv一併使用:</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">歡迎來到我的Django framework筆記</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="django_deploy.html"
+                        title="next chapter">利用nginx 及 gunicorn來佈署Django application</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/ipython_virtualenv.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="django_deploy.html" title="利用nginx 及 gunicorn來佈署Django application"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="歡迎來到我的Django framework筆記"
+             >previous</a> |</li>
+        <li><a href="index.html">MyNotes 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Ryan Nieh.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
