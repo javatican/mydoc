@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>ipython安裝及與virtualenv一起使用 &mdash; MyNotes 1.0 documentation</title>
+    <title>ipython(0.13.1)安裝及與virtualenv(1.9.1)一起使用 &mdash; MyNotes 1.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -49,8 +49,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="ipythonvirtualenv">
-<h1>ipython安裝及與virtualenv一起使用<a class="headerlink" href="#ipythonvirtualenv" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="ipython-0-13-1-virtualenv-1-9-1">
+<h1>ipython(0.13.1)安裝及與virtualenv(1.9.1)一起使用<a class="headerlink" href="#ipython-0-13-1-virtualenv-1-9-1" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="create-ipython-profile-setting-file">
 <h2>1. create ipython profile setting file:<a class="headerlink" href="#create-ipython-profile-setting-file" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python"><pre>$ ipython profile create</pre>
@@ -72,7 +72,7 @@
 <div class="highlight-python"><pre>$ ipython --profile=&lt;name&gt;</pre>
 </div>
 <ul class="simple">
-<li>初次啟用時發生錯誤, <strong>ImportError: No module named IPython.frontend.terminal.ipapp</strong>&#8221;, 需在/usr/bin/ipython檔案加入</li>
+<li>初次啟用時發生錯誤, <strong>ImportError: No module named IPython.frontend.terminal.ipapp</strong>, 需在/usr/bin/ipython檔案加入</li>
 </ul>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
 <span class="k">if</span> <span class="s">&quot;/usr/lib/python2.7/dist-packages&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
@@ -135,7 +135,7 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">ipython安裝及與virtualenv一起使用</a><ul>
+<li><a class="reference internal" href="#">ipython(0.13.1)安裝及與virtualenv(1.9.1)一起使用</a><ul>
 <li><a class="reference internal" href="#create-ipython-profile-setting-file">1. create ipython profile setting file:</a></li>
 <li><a class="reference internal" href="#ipython">2. 啟動ipython</a></li>
 <li><a class="reference internal" href="#ipython-virtualenv">3. 讓ipython 與 virtualenv一併使用:</a></li>

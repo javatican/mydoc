@@ -1,5 +1,5 @@
 ======================================
-ipython安裝及與virtualenv一起使用
+ipython(0.13.1)安裝及與virtualenv(1.9.1)一起使用
 ======================================
 
 
@@ -27,7 +27,7 @@ ipython安裝及與virtualenv一起使用
    $ ipython --profile=<name>
 
 
-- 初次啟用時發生錯誤, **ImportError: No module named IPython.frontend.terminal.ipapp**", 需在/usr/bin/ipython檔案加入
+- 初次啟用時發生錯誤, **ImportError: No module named IPython.frontend.terminal.ipapp**, 需在/usr/bin/ipython檔案加入
 
 ::
 
